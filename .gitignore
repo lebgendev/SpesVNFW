@@ -1,0 +1,5 @@
+include/
+lib/
+SDL3_image.dll
+SDL3.dll
+main.exe
