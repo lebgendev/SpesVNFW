@@ -11,18 +11,25 @@ std::vector<std::string> gameState::threeParsing(std::string &currentLine) {
     std::istringstream iss(currentLine);
     std::vector<std::string> textVec;
 
-    if (iss >> std::quoted(author) >> std::quoted(dialogue) >> std::quoted(expression) >> std::quoted(background)) {
+    if (iss >> std::quoted(author)) {
         textVec.push_back(author);
+    } else return textVec;
+
+    if (iss >> std::quoted(dialogue)) {
         textVec.push_back(dialogue);
-        if(!expression.empty()){
+    } else return textVec;
+
+    if (iss >> std::quoted(expression)) {
+        if (!expression.empty())
             textVec.push_back(expression);
-        }
-        if(!background.empty()){
-            textVec.push_back(background);
-        }
     }
 
-    std::cout << author << " " << dialogue << " " << expression << " " << background << "\n";
+    if (iss >> std::quoted(background)) {
+        if (!background.empty())
+            textVec.push_back(background);
+    }
+
+
 
     return textVec;
 }

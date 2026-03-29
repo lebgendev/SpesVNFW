@@ -26,6 +26,7 @@ void start(){
     background = screen.imageLoader("images/schoolHallwayBG.jpg", screen.getWidth(), screen.getHeight());
     character = screen.imageLoader("images/man.png", screen.getWidth() * 0.3, screen.getHeight() * 0.8);
     textBox = screen.imageLoader("images/textbox.jpg", screen.getWidth(), screen.getHeight() * 0.3);
+    dialogue->setColor(255, 255, 255, 255);
     
     
 
@@ -64,6 +65,7 @@ void displayDialogue(Screen &sc, std::vector<std::string> t){
         std::string l = t[2] + ".png";
         character->setTexture(l);
     } else {
+        std::cout << "hiiii";
         character->setTexture(character->url);
     }
     character->setDims(screen.getHeight() * 0.7 * character->aspectRatio, screen.getHeight() * 0.7);
@@ -91,11 +93,14 @@ void displayDialogue(Screen &sc, std::vector<std::string> t){
 
 
     //text
-    std::cout << t[1];
-    // float w = textBox->width * 0.8;
-    // float h = textBox->height * 0.2;
-    // screen.textRenderer(dialogue, t[1], screen.getWidth()/2 - w/2.0, screen.getHeight() * 0.85 - h/2.0,
-    //                     w, h);
+    float w = textBox->width * 0.6;
+    float h = textBox->height * 0.3;
+    screen.textRenderer(dialogue,
+                        t[1],
+                        screen.getWidth()/2 - w/2.0,
+                        screen.getHeight() * 0.85 - h/2.0,
+                        w,
+                        h);
     
     SDL_RenderPresent(sc.getRenderer());
     return;
