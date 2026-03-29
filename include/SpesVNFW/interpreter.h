@@ -12,6 +12,7 @@ public:
     int currentRow = 0;
     int lastSpace = 0;
     std::vector<std::string> fileContent;
+    std::vector<std::string> choicesParsing(std::string &currentLine);
     std::vector<std::string> threeParsing(std::string& currentLine);
     void interpret(Screen &sc);
 };

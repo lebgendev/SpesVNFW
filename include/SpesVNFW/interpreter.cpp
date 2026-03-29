@@ -4,7 +4,15 @@
 #include <sstream>
 #include <iomanip>
 
-
+std::vector<std::string> gameState::choicesParsing(std::string &currentLine){
+    std::string cur;
+    std::istringstream iss(currentLine);
+    std::vector<std::string> c;
+    while(iss >> std::quoted(cur)){
+        c.push_back(cur);
+    }
+    return c;
+}
 
 std::vector<std::string> gameState::threeParsing(std::string &currentLine) {
     std::string author, dialogue, expression, background;
@@ -62,7 +70,7 @@ void gameState::interpret(Screen &sc){
     if(currentLine.substr(j) == "INPUT:"){
         currentRow++;
         //std::vector<std::string> choices = choicesParsing(fileContent[currentRow - 1]);
-
+        
     }
 
     
