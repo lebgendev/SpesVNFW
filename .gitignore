@@ -1,5 +1,9 @@
-include/
+include/SDL3
+include/SDL3_image
+include/SDL3_ttf
 lib/
 SDL3_image.dll
 SDL3.dll
+SDL3_ttf.dll
 main.exe
+main.o
