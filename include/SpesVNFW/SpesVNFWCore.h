@@ -109,8 +109,10 @@ enum imageSize {
 
 
 typedef SDL_Event eventHandler;
+typedef SDL_FRect Rect;
 bool addEventListener(eventHandler& e);
  
+
 void start();
 void update();
 
@@ -124,10 +126,10 @@ class Text{
         SDL_Surface* surface = nullptr;
         SDL_Texture* texture = nullptr;
         Text(const char* link, int size);
+        virtual ~Text();
         void setColor(int r, int g, int b, int a);
 
 };
-
 
 
 class Image{
@@ -152,6 +154,20 @@ class Image{
 
 
 
+class Button : public Text{
+    public:
+        std::string label;
+        float x, y, bgW, bgH, textW, textH;
+        Image *bg;
+        Button(const char* link, int size,const std::string& label);
+        ~Button();
+        void setBackgroundDims(float w, float h);
+        void setCords(float x, float y);
+        void autoScaleDims();
+        void setTextDims(float w, float h);
+};
+
+
 class Screen{
     private:
         int width = 300;
@@ -160,6 +176,7 @@ class Screen{
         SDL_Renderer* renderer = nullptr;
     public:
         bool quit = false;
+
         Screen(int width, int height);
 
         int getWidth();
@@ -181,9 +198,15 @@ class Screen{
 
         Image *imageLoader(const std::string url, float w, float h);
 
-        void imageRenderer(Image *img, float x, float y, int alpha, enum imageSize t);
+        void imageRenderer(Image *img, int alpha, enum imageSize t);
+
+        void imageRenderer(Image *img, Rect src, int alpha, enum imageSize t);
 
         void textRenderer(Text *txt, std::string text, float x, float y, float w, float h);
+
+        void scrollScreenAnimation(int r, int g, int b, int a, Image* &background, float w, float h, float start, float finish, float rate);
+
+        void buttonRenderer(Button *btn);
 
         // Experimental Rotate Transformation, TODO, edit later.
         // void imageRendererTransform(Image *img, float x, float y, float angle, float oX, float oY){
@@ -201,3 +224,5 @@ class Screen{
         //     SDL_RenderPresent(renderer);
         // }
 };
+
+

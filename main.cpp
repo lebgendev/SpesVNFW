@@ -1,5 +1,6 @@
 #include "SpesVNFW/SpesVNFW.h"
 #include <iostream>
+#include <windows.h>
 
 
 
@@ -10,9 +11,9 @@ gameState game;
 Image *background;
 Image *character;
 Image *textBox;
-Text* author = new Text(fntLink.c_str(), 24);
-Text* dialogue = new Text(fntLink.c_str(), 24);
-
+Text* author = new Text(fntLink.c_str(), 30);
+Text* dialogue = new Text(fntLink.c_str(), 28);
+int a = 0;
 
 
 int main(){
@@ -27,56 +28,76 @@ void start(){
     character = screen.imageLoader("images/man.png", screen.getWidth() * 0.3, screen.getHeight() * 0.8);
     textBox = screen.imageLoader("images/textbox.jpg", screen.getWidth(), screen.getHeight() * 0.3);
     dialogue->setColor(255, 255, 255, 255);
-    
-    
+    author->setColor(255, 255, 255, 255);
 
-    game.interpret(screen);
+    game.interpret();
 }
 
-void displayDialogue(Screen &sc, std::vector<std::string> t){
-    SDL_RenderClear(sc.getRenderer());
+void makeButtons(const std::vector<std::string>& t){
+    float areaHeight = screen.getHeight() - textBox->height;
+    int numOfObjects = t.size();
+    float objH = screen.getHeight() * 0.1;
+    float offsetZero = areaHeight / (numOfObjects + 1);
 
-    //background
-    screen.imageRenderer(background,
-                        screen.getWidth()/2.0 - background->width/2.0,
-                        screen.getHeight()/2.0 - background->height/2.0,
-                        255,
-                        COVER);
-    if(t.size() == 4 && !t[3].empty()){
-        background->setTexture(t[3]);
-    } else {
-        background->setTexture(background->url);
+    for(int i = 0; i < numOfObjects; i++){
+        float offset = offsetZero * (i + 1);
+        Button* btn = new Button(fntLink.c_str(), 25, t[i]);
+
+        btn->setColor(255, 255, 255, 255);
+        btn->setBackgroundDims(screen.getWidth() * 0.4, objH);
+        btn->autoScaleDims();
+        btn->setCords(screen.getWidth()/2.0 - btn->textW/2.0, offset - btn->textH/2.0);
+
+        game.buttons.push_back(btn);
+        screen.buttonRenderer(btn);
     }
+
+    SDL_RenderPresent(screen.getRenderer());
+}
+
+void transitionAnimation(std::vector<std::string> t) {
+    float screenW = (float)screen.getWidth();
+    float screenH = (float)screen.getHeight();
+    screen.scrollScreenAnimation(0, 0, 0, 255, background, screenW, screenH, -screenW, 0, 25);
+    background->setTexture("images/" + t[1]);
+    screen.scrollScreenAnimation(0, 0, 0, 255, background, screenW, screenH, 0, -screenW, -25);
+}
+
+void changeBackground(std::string t){
+    background->setTexture("images/" + t);
+    std::cout <<"IFBQIUFQIUFZUQFI\n";
+    displayDialogue();
+}
+
+void showCharacter(std::string t){
+    character->setTexture("images/" + t);
+    displayDialogue();
+}
+
+void displayDialogue(){
+    SDL_RenderClear(screen.getRenderer());
+
     if(!background->texture){
         std::cout << "Background Texture Failed" << "\n";
+        std::cout << game.lastDialogue[1] << "\n";
     }
     background->setDims(background->height * background->aspectRatio, background->height);
-    screen.imageRenderer(background,
-                        screen.getWidth()/2.0 - background->width/2.0,
-                        screen.getHeight()/2.0 - background->height/2.0,
-                        255,
-                        COVER);
+    screen.imageRenderer(
+        background,
+        255,
+        COVER
+    );
 
 
     //character
-    
-
-    if(t.size() > 2 && !t[2].empty()){
-        std::string l = t[2] + ".png";
-        character->setTexture(l);
-    } else {
-        std::cout << "hiiii";
-        character->setTexture(character->url);
-    }
     character->setDims(screen.getHeight() * 0.7 * character->aspectRatio, screen.getHeight() * 0.7);
 
     if(!character->texture){
         std::cout << "Character Texture Failed" << "\n";
     }
 
+    character->setCords(screen.getWidth()/2.0 - character->width/2.0, screen.getHeight() - character->height);
     screen.imageRenderer(character,
-                        screen.getWidth()/2.0 - character->width/2.0,
-                        screen.getHeight() - character->height,
                         255,
                         SCALE
     );
@@ -84,29 +105,39 @@ void displayDialogue(Screen &sc, std::vector<std::string> t){
 
 
     //text box
-    textBox->setTexture("images/textbox.jpg");
+    textBox->setCords(screen.getWidth()/2 - textBox->width/2.0, screen.getHeight() * 0.85 - textBox->height/2.0);
     screen.imageRenderer(textBox,
-                        screen.getWidth()/2 - textBox->width/2.0,
-                        screen.getHeight() * 0.85 - textBox->height/2.0,
                         125,
                         SCALE);
 
 
     //text
-    float w = textBox->width * 0.6;
-    float h = textBox->height * 0.3;
+    if(game.lastDialogue.size() == 0){
+        SDL_RenderPresent(screen.getRenderer());
+        return;
+    }
+    int w, h;
+    bool b = TTF_GetStringSize(author->font, game.lastDialogue[0].c_str(), 0, &w, &h);
+    screen.textRenderer(author,
+                        game.lastDialogue[0],
+                        screen.getWidth()/2 - w/2.0,
+                        screen.getHeight() * 0.775- h/2.0,
+                        w,
+                        h);
+    b = TTF_GetStringSize(dialogue->font, game.lastDialogue[1].c_str(), 0, &w, &h);
     screen.textRenderer(dialogue,
-                        t[1],
+                        game.lastDialogue[1],
                         screen.getWidth()/2 - w/2.0,
                         screen.getHeight() * 0.85 - h/2.0,
                         w,
                         h);
     
-    SDL_RenderPresent(sc.getRenderer());
+    SDL_RenderPresent(screen.getRenderer());
     return;
 }
 
 void update(){
+
 
     //the movement keys are merely for testing controls
     eventHandler eventHandler;
@@ -114,7 +145,11 @@ void update(){
         if(eventHandler.type == EVENT_KEY_DOWN){
             switch(eventHandler.key.key){
                 case KEY_ENTER:
-                    game.interpret(screen);
+                    game.interpret();
+                    break;
+                case KEY_SPACE:
+                    game.currentRow = 0;
+                    game.interpret();
                     break;
             }
 
@@ -123,6 +158,7 @@ void update(){
             screen.quit = true;
         }
     }
+    
     
 }
 

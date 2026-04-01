@@ -1,10 +1,24 @@
-"sami" "qefnoefnqn" "man"
-"raouf" "i like big titty mommies" "man"
-"sami" "i like em young" "man"
-INPUT:
-"wokeng" "wkinrgn" "wkirnjgi"
-0:
-    "yacine" "hello dear santa hello" "Angry"
-    "raouf" "i like big titty mommies" "Shy"
-    "sami" "i like em young" "Proud"
+SCENE "scene1":
+    BG "schoolHallwayBG.jpg"
+    SHOW "EmiliaHappy.png"
+    DIALOGUE "Emilia" "Who's a good boy?"
+    SHOW "EmiliaAngry.png"
+    DIALOGUE "Emilia" "I SAID WHO'S A GOOD BOY?!"
+    DIALOGUE "Emilia" "I'm genuinely going to rape you, Subaru."
+    TRANSITION "fade" "sakuraBG.jpg"
+    SHOW "EmiliaHappy.png"
+    DIALOGUE "Emilia" "W-Well, I might forgive you..."
+    DIALOGUE "You" "You're really cute when you say it like that..."
+    SHOW "EmiliaShy.png"
+    DIALOGUE "Emilia" "B-Baka!"
+    CHOICES "Kiss" "Hug" "Cuddle" "Marry" "Kill":
 
+        
+
+
+
+
+
+    NOTE!!
+    make a system where the choices go to another scene using JUMP
+    and make a custom function system

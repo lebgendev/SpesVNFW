@@ -19,6 +19,15 @@ bool addEventListener(eventHandler& e){
             }
         }
 
+        Text::~Text(){
+            SDL_DestroySurface(surface);
+            SDL_DestroyTexture(texture);
+            TTF_CloseFont(font);
+            surface = nullptr;
+            texture = nullptr;
+            font = nullptr;
+        }
+
         void Text::setColor(int r, int g, int b, int a){
             color.r = r;
             color.g = g;
@@ -46,9 +55,10 @@ bool addEventListener(eventHandler& e){
             this->height = h;
         }
         void Image::setTexture(std::string url){
-            if(texture){
-                return;
-            }
+            
+            SDL_DestroyTexture(this->texture);
+            texture = nullptr;
+
             this->url = url;
             this->texture = IMG_LoadTexture(*(renderer), url.c_str());
             float i, j;
@@ -62,7 +72,48 @@ bool addEventListener(eventHandler& e){
 
 
 
+        // This section is dedicated to define the class Button, a child of the Text Class.
+        // Designed to make input, or rather "choices," possible in this framework.
 
+
+        Button::Button(const char* link, int size, const std::string& label) : Text(link, size), label(label){}
+
+        Button::~Button(){
+            SDL_DestroySurface(surface);
+            SDL_DestroyTexture(texture);
+            TTF_CloseFont(font);
+            surface = nullptr;
+            texture = nullptr;
+            font = nullptr;
+        }
+
+        void Button::setCords(float x, float y){
+            this->x = x;
+            this->y = y;
+        }
+
+        void Button::setBackgroundDims(float w, float h){
+            this->bgW = w;
+            this->bgH = h;
+        }
+
+        void Button::autoScaleDims(){
+            int w, h;
+            bool b = TTF_GetStringSize(this->font, this->label.c_str(), 0, &w, &h);
+            setTextDims((float)w, (float)h);
+        }
+
+        void Button::setTextDims(float w, float h){
+            this->textW = w;
+            this->textH = h;
+        }
+
+
+        //This section is for the Screen itself, the core class of this framework, where everything begins.
+        //All it takes is initializing this object with a width and height, then calling the Screen::initialize function in the main() function
+        //of the program.
+
+        //After calling the latter, a start() and update() should be defined, for they are already declared AND called within the Screen Intiliazation Function.
 
         Screen::Screen(int width, int height){
             this->width = width;
@@ -131,17 +182,24 @@ bool addEventListener(eventHandler& e){
             return new Image(&(this->renderer), url, w, h);
         }
 
-        void Screen::imageRenderer(Image *img, float x, float y, int alpha, enum imageSize t){
+        void Screen::imageRenderer(Image *img, int alpha, enum imageSize t){
             SDL_SetTextureAlphaMod(img->texture, alpha);
             SDL_FRect cords;
-            cords.x = x;
-            cords.y = y;
+            cords.x = img->x;
+            cords.y = img->y;
             cords.w = img->width;
             cords.h = img->height;
-            img->setCords(cords.x, cords.y);
             SDL_RenderTexture(renderer, img->texture, nullptr, &cords);
-            SDL_DestroyTexture(img->texture);
-            img->texture = nullptr;
+        }
+
+        void Screen::imageRenderer(Image *img, Rect src, int alpha, enum imageSize t){
+            SDL_SetTextureAlphaMod(img->texture, alpha);
+            SDL_FRect cords;
+            cords.x = img->x;
+            cords.y = img->y;
+            cords.w = img->width;
+            cords.h = img->height;
+            SDL_RenderTexture(renderer, img->texture, &src, &cords);
         }
 
         void Screen::textRenderer(Text *txt, std::string text, float x, float y, float w, float h){
@@ -187,3 +245,60 @@ bool addEventListener(eventHandler& e){
         //     SDL_RenderTextureRotated(renderer, img->texture, nullptr, &cords, angle, &origin, SDL_FLIP_NONE);
         //     SDL_RenderPresent(renderer);
         // }
+
+        void Screen::scrollScreenAnimation(int r, int g, int b, int a, Image* &background, float w, float h, float start, float finish, float rate){
+            float k = start;
+            while (true) {
+
+                SDL_RenderClear(renderer);
+                imageRenderer(
+                    background,
+                    255,
+                    COVER
+                );
+
+                
+                drawRectangle(r, g, b, a,
+                    k,          
+                    0,           
+                    w,     
+                    h      
+                );
+
+                k += rate;
+
+                SDL_RenderPresent(renderer);
+                if (k >= finish && finish >= 0) break;
+                if (k <= finish && finish < 0) break;
+                SDL_Delay(16); 
+            }
+        }
+
+        void Screen::buttonRenderer(Button *btn){
+            
+            drawRectangle(0, 0, 0, 255, btn->x + btn->textW/2.0 - btn->bgW/2.0, btn->y + btn->textH/2.0 - btn->bgH/2.0, btn->bgW, btn->bgH);
+            btn->surface = TTF_RenderText_Blended_Wrapped(
+                btn->font,
+                btn->label.c_str(),
+                btn->label.length(),          
+                btn->color,
+                btn->textW
+            );
+            if (!btn->surface) {
+                std::cout << "Button Surface Failed. \n" << std::endl;
+                return;
+            }
+            btn->texture = SDL_CreateTextureFromSurface(renderer, btn->surface);
+            SDL_DestroySurface(btn->surface);
+            btn->surface = nullptr;
+            SDL_FRect dst;
+            dst.x = btn->x;
+            dst.y = btn->y;
+            dst.w = btn->textW;  
+            dst.h = btn->textH;
+
+            SDL_RenderTexture(renderer, btn->texture, NULL, &dst);
+            SDL_DestroyTexture(btn->texture);
+            btn->texture = nullptr;
+            
+        }
