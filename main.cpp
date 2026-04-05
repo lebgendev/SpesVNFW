@@ -6,23 +6,23 @@
 
 
 std::string fntLink = "fonts/font.ttf";
-Screen screen(1080, 720);
+Screen screen(1280, 720);
 gameState game;
 Image *background;
 Image *character;
 Image *textBox;
 Text* author = new Text(fntLink.c_str(), 30);
 Text* dialogue = new Text(fntLink.c_str(), 28);
-int a = 0;
 
 
 int main(){
-    screen.initialize();
+    screen.initialize("Emilia Dating Sim");
     return 0;
 }
 
 
 void start(){
+    screen.setWindowIcon("images/icon.jpg");
     screen.setColor(255, 255, 255, 255);
     background = screen.imageLoader("images/schoolHallwayBG.jpg", screen.getWidth(), screen.getHeight());
     character = screen.imageLoader("images/man.png", screen.getWidth() * 0.3, screen.getHeight() * 0.8);
@@ -34,10 +34,17 @@ void start(){
 }
 
 void makeButtons(const std::vector<std::string>& t){
-    float areaHeight = screen.getHeight() - textBox->height;
+    game.dialogueContinue = false;
+    float areaHeight = screen.getHeight();
     int numOfObjects = t.size();
     float objH = screen.getHeight() * 0.1;
     float offsetZero = areaHeight / (numOfObjects + 1);
+    SDL_RenderClear(screen.getRenderer());
+    screen.imageRenderer(
+        background,
+        255,
+        COVER
+    );
 
     for(int i = 0; i < numOfObjects; i++){
         float offset = offsetZero * (i + 1);
@@ -51,6 +58,7 @@ void makeButtons(const std::vector<std::string>& t){
         game.buttons.push_back(btn);
         screen.buttonRenderer(btn);
     }
+    std::cout << "\n\n";
 
     SDL_RenderPresent(screen.getRenderer());
 }
@@ -58,37 +66,36 @@ void makeButtons(const std::vector<std::string>& t){
 void transitionAnimation(std::vector<std::string> t) {
     float screenW = (float)screen.getWidth();
     float screenH = (float)screen.getHeight();
-    screen.scrollScreenAnimation(0, 0, 0, 255, background, screenW, screenH, -screenW, 0, 25);
-    background->setTexture("images/" + t[1]);
-    screen.scrollScreenAnimation(0, 0, 0, 255, background, screenW, screenH, 0, -screenW, -25);
+    if(t[0] == "scroll"){
+        screen.scrollScreenAnimation(0, 0, 0, 255, background, screenW, screenH, -screenW, 0, 25);
+        background->setTexture("images/" + t[1]);
+        screen.scrollScreenAnimation(0, 0, 0, 255, background, screenW, screenH, 0, -screenW, -25);
+    } else if(t[0] == "fade"){
+        screen.fadeScreenAnimation(0, 0, 0, background, screenW, screenH, 0, 255, 5);
+        background->setTexture("images/" + t[1]);
+        screen.fadeScreenAnimation(0, 0, 0, background, screenW, screenH, 255, 0, -5);
+    }
+
 }
 
 void changeBackground(std::string t){
     background->setTexture("images/" + t);
     std::cout <<"IFBQIUFQIUFZUQFI\n";
-    displayDialogue();
+    displayDialogue(false);
 }
 
 void showCharacter(std::string t){
     character->setTexture("images/" + t);
-    displayDialogue();
+    displayDialogue(false);
 }
 
-void displayDialogue(){
-    SDL_RenderClear(screen.getRenderer());
+void displayDialogue(bool overtimeType){
 
+    game.dialogueContinue = false;
     if(!background->texture){
         std::cout << "Background Texture Failed" << "\n";
         std::cout << game.lastDialogue[1] << "\n";
     }
-    background->setDims(background->height * background->aspectRatio, background->height);
-    screen.imageRenderer(
-        background,
-        255,
-        COVER
-    );
-
-
     //character
     character->setDims(screen.getHeight() * 0.7 * character->aspectRatio, screen.getHeight() * 0.7);
 
@@ -97,18 +104,9 @@ void displayDialogue(){
     }
 
     character->setCords(screen.getWidth()/2.0 - character->width/2.0, screen.getHeight() - character->height);
-    screen.imageRenderer(character,
-                        255,
-                        SCALE
-    );
-
-
 
     //text box
     textBox->setCords(screen.getWidth()/2 - textBox->width/2.0, screen.getHeight() * 0.85 - textBox->height/2.0);
-    screen.imageRenderer(textBox,
-                        125,
-                        SCALE);
 
 
     //text
@@ -116,23 +114,75 @@ void displayDialogue(){
         SDL_RenderPresent(screen.getRenderer());
         return;
     }
-    int w, h;
-    bool b = TTF_GetStringSize(author->font, game.lastDialogue[0].c_str(), 0, &w, &h);
-    screen.textRenderer(author,
-                        game.lastDialogue[0],
-                        screen.getWidth()/2 - w/2.0,
-                        screen.getHeight() * 0.775- h/2.0,
-                        w,
-                        h);
-    b = TTF_GetStringSize(dialogue->font, game.lastDialogue[1].c_str(), 0, &w, &h);
-    screen.textRenderer(dialogue,
-                        game.lastDialogue[1],
-                        screen.getWidth()/2 - w/2.0,
-                        screen.getHeight() * 0.85 - h/2.0,
-                        w,
-                        h);
+    std::string k;
+    if(overtimeType){
+        for(int i = 0; i < game.lastDialogue[1].length(); i++){
+            SDL_RenderClear(screen.getRenderer());
+            screen.imageRenderer(
+                background,
+                255,
+                COVER
+            );
+            screen.imageRenderer(character,
+                                255,
+                                SCALE
+            );
+            screen.imageRenderer(textBox,
+                                125,
+                                SCALE);
+            int w, h;
+            bool b = TTF_GetStringSize(author->font, game.lastDialogue[0].c_str(), 0, &w, &h);
+            screen.textRenderer(author,
+                                game.lastDialogue[0],
+                                screen.getWidth()/2 - w/2.0,
+                                screen.getHeight() * 0.775- h/2.0,
+                                w,
+                                h);
+            k += game.lastDialogue[1].at(i);
+            b = TTF_GetStringSize(dialogue->font, k.c_str(), 0, &w, &h);
+            screen.textRenderer(dialogue,
+                                k,
+                                screen.getWidth()/2 - w/2.0,
+                                screen.getHeight() * 0.85 - h/2.0,
+                                w,
+                                h);
+            
+            SDL_RenderPresent(screen.getRenderer());
+            SDL_Delay(30);
+        }
+    } else {
+        SDL_RenderClear(screen.getRenderer());
+            screen.imageRenderer(
+                background,
+                255,
+                COVER
+            );
+            screen.imageRenderer(character,
+                                255,
+                                SCALE
+            );
+            screen.imageRenderer(textBox,
+                                125,
+                                SCALE);
+            int w, h;
+            bool b = TTF_GetStringSize(author->font, game.lastDialogue[0].c_str(), 0, &w, &h);
+            screen.textRenderer(author,
+                                game.lastDialogue[0],
+                                screen.getWidth()/2 - w/2.0,
+                                screen.getHeight() * 0.775- h/2.0,
+                                w,
+                                h);
+            b = TTF_GetStringSize(dialogue->font, game.lastDialogue[1].c_str(), 0, &w, &h);
+            screen.textRenderer(dialogue,
+                                game.lastDialogue[1],
+                                screen.getWidth()/2 - w/2.0,
+                                screen.getHeight() * 0.85 - h/2.0,
+                                w,
+                                h);
+    }
     
-    SDL_RenderPresent(screen.getRenderer());
+    game.dialogueContinue = true;
+    
     return;
 }
 
@@ -142,21 +192,46 @@ void update(){
     //the movement keys are merely for testing controls
     eventHandler eventHandler;
     while (addEventListener(eventHandler)){
-        if(eventHandler.type == EVENT_KEY_DOWN){
-            switch(eventHandler.key.key){
-                case KEY_ENTER:
-                    game.interpret();
-                    break;
-                case KEY_SPACE:
-                    game.currentRow = 0;
-                    game.interpret();
-                    break;
-            }
+        switch(eventHandler.type){
+            case EVENT_KEY_DOWN:
+                switch(eventHandler.key.key){
+                    case KEY_ENTER:
+                        if(game.dialogueContinue) game.interpret();
+                        break;
+                }
+                break;
 
+            case EVENT_QUIT:
+                screen.quit = true;
+                MIX_Quit();
+                TTF_Quit();
+                SDL_Quit();
+                break;
+
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                SDL_MouseButtonEvent *mouse = &eventHandler.button;
+                if (mouse->button == SDL_BUTTON_LEFT){
+                    std::string pressedLabel;
+                    for(Button* b : game.buttons){
+                        Rect rect = {b->x, b->y, b->bgW, b->bgH};
+                        if(region_match(rect, eventHandler.button.x, eventHandler.button.y)){
+                            pressedLabel = b->label;
+                            break;
+                        }
+                    }
+                    if(!pressedLabel.empty()){
+                        game.dialogueContinue = true;
+                        for(int i = 0; i < game.buttons.size(); i++){
+                            delete game.buttons[i];
+                        }
+                        game.buttons.clear();
+                        game.searchForChoice(pressedLabel);
+                    }
+                }
+                break;
+            
         }
-        if(eventHandler.type == EVENT_QUIT){
-            screen.quit = true;
-        }
+        
     }
     
     

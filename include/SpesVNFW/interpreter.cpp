@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include <unordered_map>
 
 
@@ -12,7 +13,9 @@ enum class interpretorOperators{
     DIALOGUE,
     SHOW,
     TRANSITION,
-    CHOICES
+    CHOICES,
+    JUMPTOSCENE,
+    CHOICE
 };
 
 std::unordered_map<std::string, interpretorOperators> um = {{"SCENE", interpretorOperators::SCENE},
@@ -20,7 +23,21 @@ std::unordered_map<std::string, interpretorOperators> um = {{"SCENE", interpreto
                                                             {"DIALOGUE", interpretorOperators::DIALOGUE},
                                                             {"SHOW", interpretorOperators::SHOW},
                                                             {"TRANSITION", interpretorOperators::TRANSITION},
-                                                            {"CHOICES", interpretorOperators::CHOICES}};
+                                                            {"CHOICES", interpretorOperators::CHOICES},
+                                                            {"JUMPTOSCENE", interpretorOperators::JUMPTOSCENE},
+                                                            {"CHOICE", interpretorOperators::CHOICE}};
+
+
+int calculateIndent(std::string line){
+    int g = 0;
+    for(int i = 0; i < line.length(); i++){
+        if(line.at(i) != ' '){
+            break;
+        }
+        g++;
+    }
+    return g;
+}
 
                                                         
 
@@ -29,14 +46,57 @@ void gameState::interpret(){
     if(fileContent.empty()) {
         std::ifstream script("script.spesDX");
         std::string line;
+        int k = 0;
         while(getline(script, line)) {
+            if(indentationRatio == 0){
+                indentationRatio = calculateIndent(line);
+            }
             fileContent.push_back(line);
+            std::istringstream iss(line);
+            std::string command;
+            if(iss >> command){
+                if(command == "SCENE"){
+                    iss >> std::quoted(command);
+                    scenes.push_back(command);
+                    scenesRowsIndices.push_back(k);
+                }
+            }
+            k++;
         }
     }
 
     currentRow++;
 
+    if(currentRow >= fileContent.size()){
+        return;
+    }
+
     std::string currentLine = fileContent[currentRow - 1];
+    int indent = calculateIndent(currentLine);
+    if(indent%indentationRatio != 0){
+        return;
+    }
+    
+    if(indent < lastSpace){
+        std::string c;
+        currentRow--;
+        while(true){
+            currentRow++;
+            currentLine = fileContent[currentRow-1];
+            indent = calculateIndent(currentLine);
+            if(indent >= lastSpace){
+                continue;
+            }
+            std::istringstream is(currentLine);
+            if(is >> c && c == "CHOICE"){
+                continue;
+            }
+
+            if(indent < lastSpace){
+                break;
+            }
+        }
+    }
     
     std::istringstream iss(currentLine);
     std::string command;
@@ -48,6 +108,7 @@ void gameState::interpret(){
         
         if(um.find(command) != um.end()){
             interpretorOperators t = um[command];
+            lastSpace = calculateIndent(currentLine);
             switch(t){
                 case interpretorOperators::SCENE:
                     lastScene = oneWord(currentLine);
@@ -67,7 +128,7 @@ void gameState::interpret(){
                     break;
                 case interpretorOperators::DIALOGUE:
                     lastDialogue = choicesParsing(currentLine);
-                    displayDialogue();
+                    displayDialogue(true);
                     break;
                 case interpretorOperators::TRANSITION:
                     transitionAnimation(choicesParsing(currentLine));
@@ -75,13 +136,19 @@ void gameState::interpret(){
                 case interpretorOperators::CHOICES:
                     makeButtons(choicesParsing(currentLine));
                     break;
+                case interpretorOperators::JUMPTOSCENE:{
+                    std::string scene = oneWord(currentLine);
+                    int it = std::find(scenes.begin(), scenes.end(), scene) - scenes.begin();
+                    currentRow = scenesRowsIndices[it];
+                    interpret();
+                    break;
+                }
+                case interpretorOperators::CHOICE:
+                    interpret();
+                    break;
             }
         }
     }
-
-    
-
-    std::cout << currentLine << "\n";
     
     
 
@@ -113,7 +180,6 @@ std::string gameState::oneWord(std::string &currentLine){
     while (iss >> std::ws) {
         if (iss.peek() == '"') {
             iss >> std::quoted(c);
-            std::cout << c << "\n";
             return c;
         } else {
             std::string skip;
@@ -123,30 +189,31 @@ std::string gameState::oneWord(std::string &currentLine){
     return nullptr;
 }
 
-std::vector<std::string> gameState::threeParsing(std::string &currentLine) {
-    std::string author, dialogue, expression, background;
-    std::istringstream iss(currentLine);
-    std::vector<std::string> textVec;
+void gameState::searchForChoice(std::string t){
+    while(currentRow <= fileContent.size()){
 
-    if (iss >> std::quoted(author)) {
-        textVec.push_back(author);
-    } else return textVec;
+        currentRow++;
+        std::string currentLine = fileContent[currentRow - 1];
 
-    if (iss >> std::quoted(dialogue)) {
-        textVec.push_back(dialogue);
-    } else return textVec;
+        std::cout << currentLine << "\n";
+        
+        std::istringstream iss(currentLine);
+        std::string command;
+        if(iss >> command){
+            if(um.find(command) != um.end()){
+                interpretorOperators k = um[command];
+                if(k == interpretorOperators::CHOICE){
+                    if(oneWord(currentLine) == t){
+                        std::cout << "Choice '" << t << "'found succussfully\n";
+                        lastSpace += indentationRatio;
+                        interpret();
+                        return;
+                    }
+                }
+            }
 
-    if (iss >> std::quoted(expression)) {
-        if (!expression.empty())
-            textVec.push_back(expression);
+        }
     }
 
-    if (iss >> std::quoted(background)) {
-        if (!background.empty())
-            textVec.push_back(background);
-    }
-
-
-
-    return textVec;
+    std::cerr << "Choice '" << t << "' not found in fileContent.\n";
 }

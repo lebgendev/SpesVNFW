@@ -8,6 +8,13 @@ bool addEventListener(eventHandler& e){
 
 
 
+bool region_match(Rect &rect, int x, int y){
+    return ((x >= rect.x) && (x <= rect.x + rect.w) && 
+            (y >= rect.y) && (y <= rect.y + rect.h));
+}
+
+
+
 
 
 
@@ -20,12 +27,18 @@ bool addEventListener(eventHandler& e){
         }
 
         Text::~Text(){
-            SDL_DestroySurface(surface);
-            SDL_DestroyTexture(texture);
-            TTF_CloseFont(font);
-            surface = nullptr;
-            texture = nullptr;
-            font = nullptr;
+            if(surface){
+                SDL_DestroySurface(surface);
+                surface = nullptr;
+            }
+            if(font){
+                TTF_CloseFont(font);
+                font = nullptr;
+            }
+            if(texture){
+                SDL_DestroyTexture(texture);
+                texture = nullptr;
+            }
         }
 
         void Text::setColor(int r, int g, int b, int a){
@@ -42,8 +55,9 @@ bool addEventListener(eventHandler& e){
             setDims(w, h);
         }
         Image::~Image(){
-            if (texture) {
+            if(texture){
                 SDL_DestroyTexture(texture);
+                texture = nullptr;
             }
         }
         void Image::setCords(float x, float y){
@@ -79,12 +93,11 @@ bool addEventListener(eventHandler& e){
         Button::Button(const char* link, int size, const std::string& label) : Text(link, size), label(label){}
 
         Button::~Button(){
-            SDL_DestroySurface(surface);
-            SDL_DestroyTexture(texture);
-            TTF_CloseFont(font);
-            surface = nullptr;
-            texture = nullptr;
-            font = nullptr;
+            if(bg){
+                delete bg;
+                bg = nullptr;
+            } 
+            std::cout << "Deleting bg button\n";
         }
 
         void Button::setCords(float x, float y){
@@ -138,24 +151,61 @@ bool addEventListener(eventHandler& e){
             return this->renderer;
         }
 
-        void Screen::initialize(){
+        MIX_Mixer* Screen::getMixer(){
+            return this->mixer;
+        }
+
+        void Screen::initialize(std::string name){
             TTF_Init();
+            if(!MIX_Init()){
+                std::cerr << "SDL Mixer unable to initialize.\n";
+            }
             if(!SDL_Init(SDL_INIT_VIDEO)){
-                printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+                std::cout << "SDL could not initialize! SDL_Error:" << SDL_GetError() << "\n";
             } else {
-                window = SDL_CreateWindow( "SDL Tutorial", width, height, 0 );
+                window = SDL_CreateWindow(name.c_str(), width, height, 0 );
                 if( window == NULL )
                 {
-                    printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+                    std::cout << "Window could not be created! SDL_Error:" << SDL_GetError() << "\n";
                 } else {
                     
                     renderer = SDL_CreateRenderer(window, NULL);
+                    createMixer();
+                    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
                     start();
                     while (!quit) {
                         update();
                     }
                 }
 
+            }
+        }
+
+        void Screen::createMixer(){
+            mixer = MIX_CreateMixer(nullptr);
+        }
+
+        MIX_Audio* Screen::loadAudio(std::string url, bool encode){
+            return MIX_LoadAudio(mixer, url.c_str(), encode);
+        }
+
+        void Screen::playAudio(MIX_Audio* &audio, SDL_PropertiesID options){
+            MIX_Track* track = MIX_CreateTrack(mixer);
+            if(MIX_SetTrackAudio(track, audio)){
+                if(MIX_PlayTrack(track, options)){
+                    return;
+                } else {
+                    std::cerr << "Audio played unsuccussfully.\n" << SDL_GetError();
+                }
+            } else {
+                std::cerr << "Track created unsuccussfully.\n" << SDL_GetError();
+            }
+            MIX_DestroyTrack(track);
+        }
+
+        void Screen::setWindowIcon(std::string link){
+            if(SDL_SetWindowIcon(window, IMG_Load(link.c_str()))){
+                std::cout << "Window icon successfully changed to " << link << "\n";
             }
         }
 
@@ -203,7 +253,6 @@ bool addEventListener(eventHandler& e){
         }
 
         void Screen::textRenderer(Text *txt, std::string text, float x, float y, float w, float h){
-            std::cout << "\n" << txt->font;
             txt->surface = TTF_RenderText_Blended_Wrapped(
                 txt->font,
                 text.c_str(),
@@ -268,8 +317,47 @@ bool addEventListener(eventHandler& e){
                 k += rate;
 
                 SDL_RenderPresent(renderer);
-                if (k >= finish && finish >= 0) break;
-                if (k <= finish && finish < 0) break;
+                if (k > finish && finish >= 0) break;
+                if (k < finish && finish < 0) break;
+                SDL_Delay(16); 
+            }
+        }
+
+        void Screen::fadeScreenAnimation(int r, int g, int b, Image* &background, float w, float h, int start, int finish, int rate){
+            int k = start;
+            bool con = true;
+            while(con){
+                if(start < finish){
+                    if(k >= finish){
+                        std::cout << "I FINISH A NORMAL IN LOOP";
+                        k = finish;
+                        con = false;
+                    }
+                } else {
+                    if(k <= finish){
+                        std::cout << "I FINISH A NOT SO NORMAL OUT LOOP";
+                        k = finish;
+                        con = false;
+                    }
+                }
+                SDL_RenderClear(renderer);
+                imageRenderer(
+                    background,
+                    255,
+                    COVER
+                );
+
+                std::cout << "IM DRAWING A FADE\n";
+
+                drawRectangle(r, g, b, k,
+                    0,          
+                    0,           
+                    w,     
+                    h      
+                );
+
+                SDL_RenderPresent(renderer);
+                k+= rate;
                 SDL_Delay(16); 
             }
         }

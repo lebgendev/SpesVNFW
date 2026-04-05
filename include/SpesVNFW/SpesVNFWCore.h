@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_Image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include <string>
 #include <vector>
 
@@ -115,6 +116,7 @@ bool addEventListener(eventHandler& e);
 
 void start();
 void update();
+bool region_match(Rect &rect, int x, int y);
 
 
 
@@ -158,7 +160,7 @@ class Button : public Text{
     public:
         std::string label;
         float x, y, bgW, bgH, textW, textH;
-        Image *bg;
+        Image *bg = nullptr;
         Button(const char* link, int size,const std::string& label);
         ~Button();
         void setBackgroundDims(float w, float h);
@@ -174,6 +176,7 @@ class Screen{
         int height = 300;
         SDL_Window* window = nullptr;
         SDL_Renderer* renderer = nullptr;
+        MIX_Mixer* mixer = nullptr;
     public:
         bool quit = false;
 
@@ -188,7 +191,17 @@ class Screen{
 
         SDL_Renderer* getRenderer();
 
-        void initialize();
+        MIX_Mixer* getMixer();
+
+        void initialize(std::string name);
+
+        void createMixer();
+
+        MIX_Audio* loadAudio(std::string url, bool encode);
+
+        void playAudio(MIX_Audio* &audio, SDL_PropertiesID options);
+
+        void setWindowIcon(std::string link);
 
         void updateRenderer();
 
@@ -205,6 +218,8 @@ class Screen{
         void textRenderer(Text *txt, std::string text, float x, float y, float w, float h);
 
         void scrollScreenAnimation(int r, int g, int b, int a, Image* &background, float w, float h, float start, float finish, float rate);
+
+        void fadeScreenAnimation(int r, int g, int b, Image* &background, float w, float h, int start, int finish, int rate);
 
         void buttonRenderer(Button *btn);
 
