@@ -7,6 +7,7 @@ void changeBackground(std::string t);
 void showCharacter(std::string t);
 void displayDialogue(bool overtimeTyping);
 void transitionAnimation(std::vector<std::string> t);
+void playAudio(std::string t);
 
 
 class gameState {

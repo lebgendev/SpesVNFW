@@ -58,9 +58,15 @@ void makeButtons(const std::vector<std::string>& t){
         game.buttons.push_back(btn);
         screen.buttonRenderer(btn);
     }
-    std::cout << "\n\n";
+    std::cout << "\n";
 
     SDL_RenderPresent(screen.getRenderer());
+}
+
+void playAudio(std::string t){
+    MIX_Audio* h = screen.loadAudio("audio/" + t, false);
+    screen.playAudio(h, 0);
+    MIX_DestroyAudio(h);
 }
 
 void transitionAnimation(std::vector<std::string> t) {
@@ -186,12 +192,16 @@ void displayDialogue(bool overtimeType){
     return;
 }
 
+
+
+// Button* lastHover = nullptr;
 void update(){
 
 
     //the movement keys are merely for testing controls
     eventHandler eventHandler;
     while (addEventListener(eventHandler)){
+        SDL_MouseButtonEvent *mouse = &eventHandler.button;
         switch(eventHandler.type){
             case EVENT_KEY_DOWN:
                 switch(eventHandler.key.key){
@@ -209,13 +219,13 @@ void update(){
                 break;
 
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                SDL_MouseButtonEvent *mouse = &eventHandler.button;
                 if (mouse->button == SDL_BUTTON_LEFT){
                     std::string pressedLabel;
                     for(Button* b : game.buttons){
                         Rect rect = {b->x, b->y, b->bgW, b->bgH};
                         if(region_match(rect, eventHandler.button.x, eventHandler.button.y)){
                             pressedLabel = b->label;
+                            playAudio("sfx/select.mp3");
                             break;
                         }
                     }
@@ -229,6 +239,21 @@ void update(){
                     }
                 }
                 break;
+            // case SDL_EVENT_MOUSE_MOTION:
+            //     if(!game.buttons.empty()){
+            //         for(Button* b : game.buttons){
+            //             Rect rect = {b->x, b->y, b->bgW, b->bgH};
+            //             if(region_match(rect, eventHandler.motion.x, eventHandler.motion.y)){
+            //                 if(b == lastHover){
+            //                     break;
+            //                 }
+            //                 playAudio("sfx/select.mp3");
+            //                 lastHover = b;
+            //                 break;
+            //             }
+            //         }
+            //     }
+            //     break;
             
         }
         

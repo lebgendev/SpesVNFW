@@ -111,6 +111,7 @@ enum imageSize {
 
 typedef SDL_Event eventHandler;
 typedef SDL_FRect Rect;
+typedef SDL_PropertiesID audioProperties;
 bool addEventListener(eventHandler& e);
  
 
@@ -199,7 +200,7 @@ class Screen{
 
         MIX_Audio* loadAudio(std::string url, bool encode);
 
-        void playAudio(MIX_Audio* &audio, SDL_PropertiesID options);
+        void playAudio(MIX_Audio* audio, SDL_PropertiesID options);
 
         void setWindowIcon(std::string link);
 
@@ -241,3 +242,6 @@ class Screen{
 };
 
 
+
+
+audioProperties createAudioProps(float volume, int loop, float delay);

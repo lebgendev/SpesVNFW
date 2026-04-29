@@ -15,7 +15,8 @@ enum class interpretorOperators{
     TRANSITION,
     CHOICES,
     JUMPTOSCENE,
-    CHOICE
+    CHOICE,
+    PLAYAUDIO
 };
 
 std::unordered_map<std::string, interpretorOperators> um = {{"SCENE", interpretorOperators::SCENE},
@@ -25,7 +26,8 @@ std::unordered_map<std::string, interpretorOperators> um = {{"SCENE", interpreto
                                                             {"TRANSITION", interpretorOperators::TRANSITION},
                                                             {"CHOICES", interpretorOperators::CHOICES},
                                                             {"JUMPTOSCENE", interpretorOperators::JUMPTOSCENE},
-                                                            {"CHOICE", interpretorOperators::CHOICE}};
+                                                            {"CHOICE", interpretorOperators::CHOICE},
+                                                            {"PLAYAUDIO", interpretorOperators::PLAYAUDIO}};
 
 
 int calculateIndent(std::string line){
@@ -144,6 +146,10 @@ void gameState::interpret(){
                     break;
                 }
                 case interpretorOperators::CHOICE:
+                    interpret();
+                    break;
+                case interpretorOperators::PLAYAUDIO:
+                    playAudio(oneWord(currentLine));
                     interpret();
                     break;
             }

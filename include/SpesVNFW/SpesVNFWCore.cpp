@@ -156,13 +156,14 @@ bool region_match(Rect &rect, int x, int y){
         }
 
         void Screen::initialize(std::string name){
-            TTF_Init();
-            if(!MIX_Init()){
-                std::cerr << "SDL Mixer unable to initialize.\n";
-            }
-            if(!SDL_Init(SDL_INIT_VIDEO)){
+            
+            if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)){
                 std::cout << "SDL could not initialize! SDL_Error:" << SDL_GetError() << "\n";
             } else {
+                if(!MIX_Init()){
+                    std::cerr << "SDL Mixer unable to initialize." << SDL_GetError() << "\n";
+                }
+                TTF_Init();
                 window = SDL_CreateWindow(name.c_str(), width, height, 0 );
                 if( window == NULL )
                 {
@@ -182,31 +183,35 @@ bool region_match(Rect &rect, int x, int y){
         }
 
         void Screen::createMixer(){
-            mixer = MIX_CreateMixer(nullptr);
+            mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
         }
 
         MIX_Audio* Screen::loadAudio(std::string url, bool encode){
             return MIX_LoadAudio(mixer, url.c_str(), encode);
         }
 
-        void Screen::playAudio(MIX_Audio* &audio, SDL_PropertiesID options){
+        void Screen::playAudio(MIX_Audio* audio, SDL_PropertiesID options){
             MIX_Track* track = MIX_CreateTrack(mixer);
+            MIX_SetTrackStoppedCallback(track, [](void* userdata, MIX_Track* finishedTrack) {
+                MIX_DestroyTrack(finishedTrack);
+            }, nullptr);
+
             if(MIX_SetTrackAudio(track, audio)){
-                if(MIX_PlayTrack(track, options)){
-                    return;
-                } else {
+                if(!MIX_PlayTrack(track, options)){
                     std::cerr << "Audio played unsuccussfully.\n" << SDL_GetError();
+                     MIX_DestroyTrack(track);
                 }
             } else {
+                MIX_DestroyTrack(track);
                 std::cerr << "Track created unsuccussfully.\n" << SDL_GetError();
             }
-            MIX_DestroyTrack(track);
         }
 
         void Screen::setWindowIcon(std::string link){
             if(SDL_SetWindowIcon(window, IMG_Load(link.c_str()))){
                 std::cout << "Window icon successfully changed to " << link << "\n";
             }
+            
         }
 
         void Screen::updateRenderer(){
@@ -329,13 +334,11 @@ bool region_match(Rect &rect, int x, int y){
             while(con){
                 if(start < finish){
                     if(k >= finish){
-                        std::cout << "I FINISH A NORMAL IN LOOP";
                         k = finish;
                         con = false;
                     }
                 } else {
                     if(k <= finish){
-                        std::cout << "I FINISH A NOT SO NORMAL OUT LOOP";
                         k = finish;
                         con = false;
                     }
@@ -346,8 +349,6 @@ bool region_match(Rect &rect, int x, int y){
                     255,
                     COVER
                 );
-
-                std::cout << "IM DRAWING A FADE\n";
 
                 drawRectangle(r, g, b, k,
                     0,          
@@ -390,3 +391,14 @@ bool region_match(Rect &rect, int x, int y){
             btn->texture = nullptr;
             
         }
+
+
+
+
+audioProperties createAudioProps(float volume, int loop, float delay){
+    audioProperties props = SDL_CreateProperties();
+    SDL_SetFloatProperty(props, "volume", volume);
+    SDL_SetNumberProperty(props, "loops", loop);
+    SDL_SetFloatProperty(props, "start", delay);
+    return props;
+}
