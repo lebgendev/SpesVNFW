@@ -86,7 +86,6 @@ void transitionAnimation(std::vector<std::string> t) {
 
 void changeBackground(std::string t){
     background->setTexture("images/" + t);
-    std::cout <<"IFBQIUFQIUFZUQFI\n";
     displayDialogue(false);
 }
 
