@@ -110,6 +110,13 @@ bool region_match(Rect &rect, int x, int y){
             this->bgH = h;
         }
 
+        void Button::setBackgroundColor(int r, int g, int b, int a){
+            this->r = r;
+            this->g = g;
+            this->b = b;
+            this->a = a;
+        }
+
         void Button::autoScaleDims(){
             int w, h;
             bool b = TTF_GetStringSize(this->font, this->label.c_str(), 0, &w, &h);
@@ -180,6 +187,13 @@ bool region_match(Rect &rect, int x, int y){
                 }
 
             }
+        }
+
+        void Screen::QUIT_PROGRAM(){
+            quit = true;
+            MIX_Quit();
+            TTF_Quit();
+            SDL_Quit();
         }
 
         void Screen::createMixer(){
@@ -365,7 +379,7 @@ bool region_match(Rect &rect, int x, int y){
 
         void Screen::buttonRenderer(Button *btn){
             
-            drawRectangle(0, 0, 0, 255, btn->x + btn->textW/2.0 - btn->bgW/2.0, btn->y + btn->textH/2.0 - btn->bgH/2.0, btn->bgW, btn->bgH);
+            drawRectangle(btn->r, btn->g, btn->b, btn->a, btn->x + btn->textW/2.0 - btn->bgW/2.0, btn->y + btn->textH/2.0 - btn->bgH/2.0, btn->bgW, btn->bgH);
             btn->surface = TTF_RenderText_Blended_Wrapped(
                 btn->font,
                 btn->label.c_str(),
@@ -402,3 +416,8 @@ audioProperties createAudioProps(float volume, int loop, float delay){
     SDL_SetFloatProperty(props, "start", delay);
     return props;
 }
+
+
+// void gameBegin(std::string game){
+//     system
+// }

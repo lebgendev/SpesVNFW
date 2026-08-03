@@ -41,12 +41,9 @@ int calculateIndent(std::string line){
     return g;
 }
 
-                                                        
-
-
-void gameState::interpret(){
-    if(fileContent.empty()) {
-        std::ifstream script("script.spesDX");
+      
+void gameState::readScript(std::string file){
+    std::ifstream script(file);
         std::string line;
         int k = 0;
         while(getline(script, line)) {
@@ -65,6 +62,12 @@ void gameState::interpret(){
             }
             k++;
         }
+}
+
+
+void gameState::interpret(){
+    if(fileContent.empty()) {
+        readScript("script.spesDX");
     }
 
     currentRow++;

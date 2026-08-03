@@ -1,2 +1,17 @@
 SCENE "scene1":
-    //write here
+    PLAYAUDIO "bg/mystery.ogg"
+    BG "schoolHallwayBG.jpg"
+    SHOW "benamane.png"
+    DIALOGUE "Benamane" "Rak 7ab t9ra f japon...?"
+    DIALOGUE "Benamane" "Ih wla la yal kfat"
+    CHOICES "Yes" "No":
+    CHOICE "Yes":
+        PLAYAUDIO "finale.mp3"
+        SHOW "moh.png"
+        DIALOGUE "You" "T3ich..."
+    CHOICE "No":
+        PLAYAUDIO "impact.wav"
+        SHOW "moh.png"
+        DIALOGUE "You" "No, 9wd"
+    
+    SHOW "..."

@@ -52,6 +52,7 @@ void makeButtons(const std::vector<std::string>& t){
 
         btn->setColor(255, 255, 255, 255);
         btn->setBackgroundDims(screen.getWidth() * 0.4, objH);
+        btn->setBackgroundColor(255, 255, 0, 255);
         btn->autoScaleDims();
         btn->setCords(screen.getWidth()/2.0 - btn->textW/2.0, offset - btn->textH/2.0);
 
@@ -211,10 +212,7 @@ void update(){
                 break;
 
             case EVENT_QUIT:
-                screen.quit = true;
-                MIX_Quit();
-                TTF_Quit();
-                SDL_Quit();
+                screen.QUIT_PROGRAM();
                 break;
 
             case SDL_EVENT_MOUSE_BUTTON_DOWN:

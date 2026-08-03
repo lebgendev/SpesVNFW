@@ -161,10 +161,12 @@ class Button : public Text{
     public:
         std::string label;
         float x, y, bgW, bgH, textW, textH;
+        int r = 0, g = 0, b = 0, a = 255;
         Image *bg = nullptr;
         Button(const char* link, int size,const std::string& label);
         ~Button();
         void setBackgroundDims(float w, float h);
+        void setBackgroundColor(int r, int g, int b, int a);
         void setCords(float x, float y);
         void autoScaleDims();
         void setTextDims(float w, float h);
@@ -195,6 +197,8 @@ class Screen{
         MIX_Mixer* getMixer();
 
         void initialize(std::string name);
+
+        void QUIT_PROGRAM();
 
         void createMixer();
 
@@ -245,3 +249,8 @@ class Screen{
 
 
 audioProperties createAudioProps(float volume, int loop, float delay);
+
+// class buttonsHandler{
+//     public:
+//         std::vector<Button*> buttons;
+// };
