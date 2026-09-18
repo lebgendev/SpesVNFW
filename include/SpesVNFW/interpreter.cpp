@@ -16,7 +16,8 @@ enum class interpretorOperators{
     CHOICES,
     JUMPTOSCENE,
     CHOICE,
-    PLAYAUDIO
+    PLAYAUDIO,
+    END
 };
 
 std::unordered_map<std::string, interpretorOperators> um = {{"SCENE", interpretorOperators::SCENE},
@@ -27,7 +28,8 @@ std::unordered_map<std::string, interpretorOperators> um = {{"SCENE", interpreto
                                                             {"CHOICES", interpretorOperators::CHOICES},
                                                             {"JUMPTOSCENE", interpretorOperators::JUMPTOSCENE},
                                                             {"CHOICE", interpretorOperators::CHOICE},
-                                                            {"PLAYAUDIO", interpretorOperators::PLAYAUDIO}};
+                                                            {"PLAYAUDIO", interpretorOperators::PLAYAUDIO},
+                                                            {"END", interpretorOperators::END}};
 
 
 int calculateIndent(std::string line){
@@ -42,7 +44,7 @@ int calculateIndent(std::string line){
 }
 
       
-void gameState::readScript(std::string file){
+void gameState::loadScript(std::string file){
     std::ifstream script(file);
         std::string line;
         int k = 0;
@@ -67,7 +69,7 @@ void gameState::readScript(std::string file){
 
 void gameState::interpret(){
     if(fileContent.empty()) {
-        readScript("script.spesDX");
+        loadScript("script.spesdx");
     }
 
     currentRow++;
@@ -154,6 +156,9 @@ void gameState::interpret(){
                 case interpretorOperators::PLAYAUDIO:
                     playAudio(oneWord(currentLine));
                     interpret();
+                    break;
+                case interpretorOperators::END:
+                    
                     break;
             }
         }

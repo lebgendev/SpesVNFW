@@ -27,7 +27,7 @@ public:
     std::string oneWord(std::string &currentLine);
     void searchForChoice(std::string t);
     void interpret();
-    void readScript(std::string file);
+    void loadScript(std::string file);
     void saveGameState();
 };
 

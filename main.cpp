@@ -13,22 +13,24 @@ Image *character;
 Image *textBox;
 Text* author = new Text(fntLink.c_str(), 30);
 Text* dialogue = new Text(fntLink.c_str(), 28);
+Text* fpsCounter = new Text(fntLink.c_str(), 30);
 
 
 int main(){
-    screen.initialize("Emilia Dating Sim");
+    screen.initialize("AST Adventure");
     return 0;
 }
 
 
 void start(){
-    screen.setWindowIcon("images/icon.jpg");
-    screen.setColor(255, 255, 255, 255);
-    background = screen.imageLoader("images/schoolHallwayBG.jpg", screen.getWidth(), screen.getHeight());
-    character = screen.imageLoader("images/man.png", screen.getWidth() * 0.3, screen.getHeight() * 0.8);
-    textBox = screen.imageLoader("images/textbox.jpg", screen.getWidth(), screen.getHeight() * 0.3);
-    dialogue->setColor(255, 255, 255, 255);
-    author->setColor(255, 255, 255, 255);
+    // screen.setWindowIcon("images/icon.jpg");
+    // screen.setColor(255, 255, 255, 255);
+    // background = screen.imageLoader("images/schoolHallwayBG.jpg", screen.getWidth(), screen.getHeight());
+    // character = screen.imageLoader("images/man.png", screen.getWidth() * 0.3, screen.getHeight() * 0.8);
+    // textBox = screen.imageLoader("images/textbox.jpg", screen.getWidth(), screen.getHeight() * 0.3);
+    // dialogue->setColor(255, 255, 255, 255);
+    // author->setColor(255, 255, 255, 255);
+    // fpsCounter->setColor(0, 0, 0, 255);
 
     game.interpret();
 }
@@ -52,7 +54,7 @@ void makeButtons(const std::vector<std::string>& t){
 
         btn->setColor(255, 255, 255, 255);
         btn->setBackgroundDims(screen.getWidth() * 0.4, objH);
-        btn->setBackgroundColor(255, 255, 0, 255);
+        btn->setBackgroundColor(0, 0, 0, 255);
         btn->autoScaleDims();
         btn->setCords(screen.getWidth()/2.0 - btn->textW/2.0, offset - btn->textH/2.0);
 
@@ -101,13 +103,18 @@ void displayDialogue(bool overtimeType){
     if(!background->texture){
         std::cout << "Background Texture Failed" << "\n";
         std::cout << game.lastDialogue[1] << "\n";
+        return;
     }
     //character
-    character->setDims(screen.getHeight() * 0.7 * character->aspectRatio, screen.getHeight() * 0.7);
-
+    if(!character){
+        std::cout << "Character Image Object is Null" << "\n";
+        return;
+    }
     if(!character->texture){
         std::cout << "Character Texture Failed" << "\n";
+        return;
     }
+    character->setDims(screen.getHeight() * 0.7 * character->aspectRatio, screen.getHeight() * 0.7);
 
     character->setCords(screen.getWidth()/2.0 - character->width/2.0, screen.getHeight() - character->height);
 

@@ -165,28 +165,37 @@ bool region_match(Rect &rect, int x, int y){
         void Screen::initialize(std::string name){
             
             if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)){
-                std::cout << "SDL could not initialize! SDL_Error:" << SDL_GetError() << "\n";
-            } else {
-                if(!MIX_Init()){
-                    std::cerr << "SDL Mixer unable to initialize." << SDL_GetError() << "\n";
-                }
-                TTF_Init();
-                window = SDL_CreateWindow(name.c_str(), width, height, 0 );
-                if( window == NULL )
-                {
-                    std::cout << "Window could not be created! SDL_Error:" << SDL_GetError() << "\n";
-                } else {
-                    
-                    renderer = SDL_CreateRenderer(window, NULL);
-                    createMixer();
-                    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-                    start();
-                    while (!quit) {
-                        update();
-                    }
-                }
-
+                std::cout << "SDL failed to initialize! SDL_Error:" << SDL_GetError();
+                return;
             }
+            if(!MIX_Init()){
+                std::cerr << "SDL Mixer failed to initialize." << SDL_GetError() << "\n";
+                return;
+            }
+            if(!TTF_Init()){
+                std::cerr << "SDL TTF failed to initialize." << SDL_GetError() << "\n";
+                return;
+            }
+            window = SDL_CreateWindow(name.c_str(), width, height, 0 );
+            if( window == NULL ){
+                std::cout << "Window could not be created! SDL_Error:" << SDL_GetError() << "\n";
+                return;
+            } 
+                
+            renderer = SDL_CreateRenderer(window, NULL);
+            if(!renderer){
+                std::cout << "Renderer could not be created! SDL_Error:" << SDL_GetError() << "\n";
+                return;
+            }
+            createMixer();
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+            start();
+            while (!quit) {
+                update();
+            }
+            
+
+            
         }
 
         void Screen::QUIT_PROGRAM(){
@@ -212,7 +221,7 @@ bool region_match(Rect &rect, int x, int y){
 
             if(MIX_SetTrackAudio(track, audio)){
                 if(!MIX_PlayTrack(track, options)){
-                    std::cerr << "Audio played unsuccussfully.\n" << SDL_GetError();
+                    std::cerr << "Audio could not play.\n" << SDL_GetError();
                      MIX_DestroyTrack(track);
                 }
             } else {
