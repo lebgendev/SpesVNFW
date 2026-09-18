@@ -17,7 +17,7 @@ Text* fpsCounter = new Text(fntLink.c_str(), 30);
 
 
 int main(){
-    screen.initialize("AST Adventure");
+    screen.initialize("Title");
     return 0;
 }
 
@@ -225,7 +225,7 @@ void update(){
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 if (mouse->button == SDL_BUTTON_LEFT){
                     std::string pressedLabel;
-                    for(Button* b : game.buttons){
+                    for(Button* &b : game.buttons){
                         Rect rect = {b->x, b->y, b->bgW, b->bgH};
                         if(region_match(rect, eventHandler.button.x, eventHandler.button.y)){
                             pressedLabel = b->label;
